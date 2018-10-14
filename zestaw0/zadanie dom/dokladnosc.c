@@ -19,7 +19,7 @@ int main(void)
   int i;
   for (i = 0; i < N; i++)
   {
-    printf("%d\n d=", i+1);
+    printf("%d\n d=", i + 1);
     gsl_ieee_printf_double(&d);
     printf("\n");
     printf(" d= %.50f\n", d);
