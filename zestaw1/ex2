@@ -1,0 +1,22 @@
+stats 'dane2.dat' using 3 nooutput name 'A_'
+Z_max = A_max
+stats 'dane2.dat' using 1 every ::A_index_max::A_index_max nooutput
+X_max = STATS_max
+stats 'dane2.dat' using 2 every ::A_index_max::A_index_max nooutput
+Y_max = STATS_max
+
+stats 'dane2.dat' using 3 nooutput name 'A_'
+Z_min = A_min
+stats 'dane2.dat' using 1 every ::A_index_min::A_index_min nooutput
+X_min = STATS_min
+stats 'dane2.dat' using 2 every ::A_index_min::A_index_min nooutput
+Y_min = STATS_max
+
+Y_min = STATS_min
+print sprintf("MIN: (%d, %d, %d)", X_min, Y_min, Z_min);
+print sprintf("MAX: (%d, %d, %d)", X_max, Y_max, Z_max);
+
+set arrow 1 from X_max, Y_max, (Z_max + 0.5) to X_max, Y_max, Z_max fill
+
+splot "dane2.dat" u 1:2:3 with points lt palette
+pause -1
