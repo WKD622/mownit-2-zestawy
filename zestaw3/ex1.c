@@ -16,47 +16,30 @@ double **allocate_matrix(int size)
 
 void fill_matrix(int size, double **matrix)
 {
-    matrix[0][0] = 4.0;
-    matrix[0][1] = -1.0;
-    matrix[0][2] = -0.2;
-    matrix[0][3] = 2.0;
-    matrix[1][0] = -1.0;
-    matrix[1][1] = 5.0;
-    matrix[1][2] = 0.0;
-    matrix[1][3] = -2.0;
-    matrix[2][0] = 0.2;
-    matrix[2][1] = 1.0;
-    matrix[2][2] = 10.0;
-    matrix[2][3] = -1.0;
-    matrix[3][0] = 0.0;
-    matrix[3][1] = -2.0;
-    matrix[3][2] = -1.0;
-    matrix[3][3] = 4.0;
-
-    // int i, j;
-    // for (i = 0; i < size; i++)
-    // {
-    //     for (j = 0; j < size; j++)
-    //     {
-    //         if (i == j)
-    //         {
-    //             if (i == 0 || i == size - 1)
-    //                 matrix[i][j] = 1;
-    //             else
-    //                 matrix[i][j] = 2;
-    //         }
-    //         else if (j == i + 1)
-    //         {
-    //             matrix[i][j] = 1 / ((double)j + 1.0);
-    //         }
-    //         else if (i == j + 1)
-    //         {
-    //             matrix[i][j] = 1 / ((double)i + 1.0);
-    //         }
-    //         else
-    //             matrix[i][j] = 0;
-    //     }
-    // }
+    int i, j;
+    for (i = 0; i < size; i++)
+    {
+        for (j = 0; j < size; j++)
+        {
+            if (i == j)
+            {
+                if (i == 0 || i == size - 1)
+                    matrix[i][j] = 1;
+                else
+                    matrix[i][j] = 2;
+            }
+            else if (j == i + 1)
+            {
+                matrix[i][j] = 1 / ((double)j + 1.0);
+            }
+            else if (i == j + 1)
+            {
+                matrix[i][j] = 1 / ((double)i + 1.0);
+            }
+            else
+                matrix[i][j] = 0;
+        }
+    }
 }
 
 void print_matrix(int size, double **matrix, char *title)
@@ -90,15 +73,11 @@ double *allocate_vector(int size)
 
 void fill_vector(int size, double *vector)
 {
-    vector[0] = 30.0;
-    vector[1] = 0;
-    vector[2] = -10.0;
-    vector[3] = 5.0;
-    // int i;
-    // for (i = 0; i < size; i++)
-    // {
-    //     vector[i] = rand() % 2;
-    // }
+    int i;
+    for (i = 0; i < size; i++)
+    {
+        vector[i] = rand() % 2;
+    }
 }
 
 void print_vector(int size, double *vector)
@@ -175,7 +154,7 @@ float arithmetic_average(int size, double *x)
         return 0.0;
 }
 
-void jacobian_method(int size, double **A, gsl_vector *b)
+void jacobian_method(int size, double **A, gsl_vector *b, double accuracy)
 {
     int i, j, s, k;
     double **L_U, **D;
@@ -242,50 +221,57 @@ void jacobian_method(int size, double **A, gsl_vector *b)
     double *x_dif = allocate_vector(size);
     fill_vector_with_zeros(size, x);
     fill_vector_with_zeros(size, x_dif);
+    int number_of_iterations = 0;
 
-    for (i = 0; i < 10; i++)
+    while (1)
     {
         for (j = 0; j < size; j++)
+        {
             x_copy[j] = x[j];
+            x_dif[j] = x[j];
+        }
         // OD X1 DO XN
         for (j = 0; j < size; j++)
         {
             x[j] = b->data[j] / A[j][j];
-            // printf("b[j]=%f\n", b->data[j]);
-            // printf("x[j] = b->data[j] / A[j][j]; %f\n", x[j]);
             for (k = 0; k < size; k++)
             {
                 if (k != j)
                     x[j] = x[j] + M_2d[j][k] * x_copy[k];
             }
         }
-        // number_of_iterations++;
-        // printf("\n%d\n", i);
-        // for (s = 0; s < size; s++)
-        //     printf("x%d = %f\n", s, x[s]);
-        // printf("\n");
-        // printf("\n%d\n", number_of_iterations);
+        number_of_iterations++;
+        for (j = 0; j < size; j++)
+        {
+            x_dif[j] = x_dif[j] - x[j];
+            if (x_dif[j] < 0.0)
+                x_dif[j] = x_dif[j] * (-1.0);
+        }
+        if (arithmetic_average(size, x_dif) < accuracy)
+        {
+            printf("Number of iterations %d\n\n", number_of_iterations);
+            for (i = 0; i < size; i++)
+                printf("x%d = %f\n", i, x[i]);
+
+            free_matrix(size, L_U);
+            free_matrix(size, D);
+            free_matrix(size, D_after_inversion);
+            free_matrix(size, M_2d);
+            free_vetor(D_1d);
+            free_vetor(L_U_1d);
+            free_vetor(x);
+            free_vetor(x_dif);
+            free(p);
+            free(M);
+            return;
+        }
     }
-
-    for (i = 0; i < size; i++)
-        printf("x%d = %f\n", i, x[i]);
-
-    free_matrix(size, L_U);
-    free_matrix(size, D);
-    free_matrix(size, D_after_inversion);
-    free_matrix(size, M_2d);
-    free_vetor(D_1d);
-    free_vetor(L_U_1d);
-    free_vetor(x);
-    free_vetor(x_dif);
-    free(p);
-    free(M);
 }
 
 int main()
 {
     srand(time(NULL));
-    int size = 4;
+    int size = 10;
     double **A = allocate_matrix(size);
     double *x = allocate_vector(size);
     gsl_vector *b = gsl_vector_alloc((size_t)size);
@@ -309,10 +295,7 @@ int main()
     print_matrix(size, A, "A");
 
     // JACOBI
-    fill_vector(size, x);
-    x_v = gsl_vector_view_array(x, (size_t)size);
-
-    jacobian_method(size, A, &x_v.vector);
+    jacobian_method(size, A, b, 0.0000000001);
 
     free_vetor(x);
     free_vetor(A_1d);
