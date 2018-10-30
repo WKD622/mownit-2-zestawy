@@ -146,11 +146,7 @@ void print_diffrence(gsl_vector *result, double *B, int size)
   printf("\n");
 }
 
-void solve(int size, gsl_matrix_view m, gsl_vector_view b, gsl_vector *x, gsl_permutation *p)
-{
-}
-
-double czas(struct rusage *ru0, struct rusage *ru1, FILE *result)
+double czas(struct rusage *ru0, struct rusage *ru1)
 {
 
   double utime = 0, stime = 0, ttime = 0;
@@ -171,7 +167,8 @@ void test()
   int size;
   struct rusage t0, t1, t2;
   int s;
-  FILE *test_result = fopen("out/test_result", "wr");
+  FILE *solve_result = fopen("out/solve_result", "wr");
+  FILE *decomp_result = fopen("out/decomp_result", "wr");
   for (size = 10; size < 1000; size++)
   {
     double *B = generate_vector_array(size);
@@ -191,14 +188,17 @@ void test()
 
     system("clear");
     printf("| TESTING: \n| %d of 1000\n", size);
-    double ttime1 = czas(&t0, &t1, test_result);
-    double ttime2 = czas(&t1, &t2, test_result);
-    fprintf(test_result, "%3f %3f\n", ttime1, ttime2);
+    double ttime1 = czas(&t0, &t1);
+    double ttime2 = czas(&t1, &t2);
+    fprintf(decomp_result, "%3f %3d\n", ttime1, size);
+    fprintf(solve_result, "%3f %3d\n", ttime2, size);
   }
-  fclose(test_result);
+  fclose(solve_result);
+  fclose(decomp_result);
   system("clear");
   printf("| DONE:\n| Results are in out folder.\n");
-  system("gnuplot --persist -e 'plot \"out/test_result\" u 1:2'");
+  system("gnuplot --persist -e 'plot \"out/decomp_result\" u 1:2'");
+  system("gnuplot --persist -e 'plot \"out/solve_result\" u 1:2'");
   sleep(3);
   system("clear");
 }
@@ -213,7 +213,8 @@ int main(int argc, char *argv[])
   {
     int size = atoi(argv[1]);
     int s;
-
+    struct rusage t0, t1, t2;
+    double ttime1, ttime2;
     double *B = generate_vector_array(size);
     double *A = generate_matrix_array(size, size);
     double *A_copy = malloc(size * size * sizeof(double));
@@ -232,8 +233,14 @@ int main(int argc, char *argv[])
     gsl_vector *x = gsl_vector_alloc((size_t)size);
     gsl_vector *result = gsl_vector_alloc((size_t)size);
 
+    getrusage(RUSAGE_SELF, &t0);  
     gsl_linalg_LU_decomp(&m.matrix, p, &s);
+    getrusage(RUSAGE_SELF, &t1);
     gsl_linalg_LU_solve(&m.matrix, p, &b.vector, x);
+    getrusage(RUSAGE_SELF, &t2); 
+
+    ttime1 = czas(&t0, &t1); 
+    ttime2 = czas(&t1, &t2); 
 
     print_vector(x, size, "RESULT:");
 
@@ -243,6 +250,8 @@ int main(int argc, char *argv[])
 
     print_vector_q(result, size, "RESULT:");
     print_diffrence(result, B_copy, size);
+
+    printf("Decmopsition time: %f\nSolving time: %f\n", ttime1, ttime2);
 
     gsl_permutation_free(p);
     gsl_vector_free(x);
