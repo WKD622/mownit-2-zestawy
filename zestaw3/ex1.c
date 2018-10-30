@@ -159,6 +159,8 @@ void jacobian_method(int size, double **A, gsl_vector *b, double accuracy)
     int i, j, s, k;
     double **L_U, **D;
 
+    print_matrix(size, A, "A");
+
     // TWORZE MACIERZE A = L + D + U
     L_U = allocate_matrix(size);
     D = allocate_matrix(size);
@@ -261,6 +263,7 @@ void jacobian_method(int size, double **A, gsl_vector *b, double accuracy)
             free_vetor(L_U_1d);
             free_vetor(x);
             free_vetor(x_dif);
+            free_vetor(x_copy);
             free(p);
             free(M);
             return;
@@ -278,21 +281,14 @@ int main()
 
     fill_matrix(size, A);
     fill_vector(size, x);
-    // print_matrix(size, A);
-    // print_vector(size, x);
 
     double *A_1d = matrix_2d_to_1d(size, A);
-    // print_vector(size * size, A_1d);
 
     gsl_matrix_view A_v = gsl_matrix_view_array(A_1d, (size_t)size, (size_t)size);
     gsl_vector_view x_v = gsl_vector_view_array(x, (size_t)size);
 
     // wyliczanie wektora b
     gsl_blas_dgemv(CblasNoTrans, 1.0, &A_v.matrix, &x_v.vector, 0.0, b);
-
-    // gsl_vector_fprintf(stdout, b, "%g");
-
-    print_matrix(size, A, "A");
 
     // JACOBI
     jacobian_method(size, A, b, 0.0000000001);
