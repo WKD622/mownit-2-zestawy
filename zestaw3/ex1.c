@@ -179,6 +179,43 @@ gsl_vector *copy_one_vector_to_another(int size, gsl_vector *a)
     return b;
 }
 
+double find_max_in_matrix(int size, double **matrix)
+{
+    int i, j;
+    int max = matrix[0][0];
+    for (i = 0; i < size; i++)
+    {
+        for (j = 0; j < size; j++)
+        {
+            if (matrix[i][j] > max)
+                max = matrix[i][j];
+        }
+    }
+    return max;
+}
+
+double find_min_in_matrix(int size, double **matrix)
+{
+    int i, j;
+    int min = matrix[0][0];
+    for (i = 0; i < size; i++)
+    {
+        for (j = 0; j < size; j++)
+        {
+            if (matrix[i][j] < min)
+                min = matrix[i][j];
+        }
+    }
+    return min;
+}
+
+double abs_(double l)
+{
+    if (l < 0)
+        return l * (-1.0);
+    else
+        return l;
+}
 void jacobian_method(int size, double **A, gsl_vector *b, double accuracy)
 {
     int i, j, s, k;
@@ -276,7 +313,7 @@ void jacobian_method(int size, double **A, gsl_vector *b, double accuracy)
         }
         if (arithmetic_average(size, x_dif) < accuracy)
         {
-            printf("Number of iterations %d\n\n", number_of_iterations);
+            printf("METODA JACOBIEGO:\nNumber of iterations %d\n", number_of_iterations);
             for (i = 0; i < size; i++)
                 printf("x%d = %f\n", i, x[i]);
 
@@ -296,12 +333,14 @@ void jacobian_method(int size, double **A, gsl_vector *b, double accuracy)
     }
 }
 
-void chebyshev_method(int size, double **A, gsl_vector *b, double *x0, int iter_num, double l_max, float l_min)
+void chebyshev_method(int size, double **A, gsl_vector *b, double *x0, double accuracy)
 {
     int i, j, s;
-    float alpha, beta;
-    float d = (l_max + l_min) / 2.0;
-    float c = (l_max - l_min) / 2.0;
+    double l_max = find_max_in_matrix(size, A);
+    double l_min = find_min_in_matrix(size, A);
+    double alpha, beta;
+    double d = (l_max + l_min) / 2.0;
+    double c = (l_max - l_min) / 2.0;
     double **pre_cond = allocate_matrix(size);
     double *x_1 = allocate_vector(size);
     double *A_1d = matrix_2d_to_1d(size, A);
@@ -314,14 +353,21 @@ void chebyshev_method(int size, double **A, gsl_vector *b, double *x0, int iter_
     gsl_vector *p;
     gsl_vector *result = gsl_vector_alloc((size_t)size);
     double *A_copy = allocate_vector(size * size);
+    double *x_dif = allocate_vector(size);
+    int number_of_iterations = 0;
 
     for (i = 0; i < size; i++)
         x_1[i] = x0[i];
 
     gsl_vector_view x = gsl_vector_view_array(x_1, size);
 
-    for (i = 0; i < 1000; i++)
+    for (i = 0; i < 1000000000; i++)
     {
+        number_of_iterations++;
+        for (j = 0; j < size; j++)
+        {
+            x_dif[j] = abs_(x_1[j]);
+        }
         memcpy(A_copy, A_1d, size * size * sizeof(double));
         gsl_matrix_view A_view = gsl_matrix_view_array(A_copy, size, size);
 
@@ -346,9 +392,33 @@ void chebyshev_method(int size, double **A, gsl_vector *b, double *x0, int iter_
         gsl_blas_dgemv(CblasNoTrans, 1.0, &A_view.matrix, &x.vector, 0.0, result);
         for (j = 0; j < size; j++)
             r->data[j] = b->data[j] - result->data[j];
-    }
-    print_vector(size, x_1);
 
+        for (j = 0; j < size; j++)
+        {
+            x_dif[j] = abs_(x_dif[j] - abs_(x_1[j]));
+        }
+
+        if (arithmetic_average(size, x_dif) < accuracy && number_of_iterations > 10)
+        {
+            printf("\nMETODA CZEBYSZEWA:\nNumber of iterations %d\n", number_of_iterations);
+            for (i = 0; i < size; i++)
+                printf("x%d = %f\n", i, x_1[i]);
+            free_vetor(x_dif);
+            free_matrix(size, pre_cond);
+            free_vetor(x_1);
+            free(pom);
+            free(z);
+            free(r);
+            free_vetor(pre_cond_1d);
+            free_vetor(A_copy);
+            free_vetor(A_1d);
+            return;
+        }
+    }
+    printf("\nMETODA CZEBYSZEWA:\nNumber of iterations %d\n", number_of_iterations);
+    for (i = 0; i < size; i++)
+        printf("x%d = %f\n", i, x_1[i]);
+    free_vetor(x_dif);
     free_matrix(size, pre_cond);
     free_vetor(x_1);
     free(pom);
@@ -357,31 +427,6 @@ void chebyshev_method(int size, double **A, gsl_vector *b, double *x0, int iter_
     free_vetor(pre_cond_1d);
     free_vetor(A_copy);
     free_vetor(A_1d);
-
-    // function [x] =  SolChebyshev002(A,b,x0,iterNum,lMax,lMin)
-
-    //   d=(lMax+lMin)/2;
-    //   c=(lMax-lMin)/2;
-    //   preCond=eye(size(A)); %preconditioner
-    //   x=x0;
-    //   r=b-A*x;
-
-    //   for i = 1:iterNum % size(A,1)
-    //       z = linsolve(preCond,r);
-    //       if (i==1)
-    //           p=z;
-    //           alpha=1/d;
-    //       else
-    //           beta=(c*alpha/2)^2;
-    //           alpha=1/(d - beta/alpha);
-    //           p=z+beta*p;
-    //       end;
-
-    //       x=x+alpha*p;
-    //       r=b-A*x; %(=r-alpha*A*p)
-    //       if (norm(r)<1e-15), break; end; %stop if necessary [Given A on the order of eps this will make the iteration stop too soon. Should be norm(r)<eps*norm(b) or norm(r)<eps*norm(A*x) depending on the details that I am unaware of; i.e., "1e-15" carries units.]
-    //   end;
-    // end
 }
 
 int main()
@@ -403,9 +448,8 @@ int main()
     // wyliczanie wektora b
     gsl_blas_dgemv(CblasNoTrans, 1.0, &A_v.matrix, &x_v.vector, 0.0, b);
 
-    // JACOBI
     jacobian_method(size, A, b, 0.0000000001);
-    chebyshev_method(size, A, b, x, 1000, 0, 100000);
+    chebyshev_method(size, A, b, x, 0.00000001);
 
     free_vetor(x);
     free_vetor(A_1d);
