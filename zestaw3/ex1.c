@@ -216,6 +216,7 @@ double abs_(double l)
     else
         return l;
 }
+
 void jacobian_method(int size, double **A, gsl_vector *b, double accuracy)
 {
     int i, j, s, k;
@@ -313,7 +314,7 @@ void jacobian_method(int size, double **A, gsl_vector *b, double accuracy)
         }
         if (arithmetic_average(size, x_dif) < accuracy)
         {
-            printf("METODA JACOBIEGO:\nNumber of iterations %d\n", number_of_iterations);
+            printf("\nMETODA JACOBIEGO:\nNumber of iterations %d\n", number_of_iterations);
             for (i = 0; i < size; i++)
                 printf("x%d = %f\n", i, x[i]);
 
@@ -448,11 +449,38 @@ int main()
     // wyliczanie wektora b
     gsl_blas_dgemv(CblasNoTrans, 1.0, &A_v.matrix, &x_v.vector, 0.0, b);
 
-    jacobian_method(size, A, b, 0.0000000001);
-    chebyshev_method(size, A, b, x, 0.00000001);
+    jacobian_method(size, A, b, 0.000001);
+    chebyshev_method(size, A, b, x, 0.000001);
 
+    double **C = allocate_matrix(4);
+    C[0][0] = 10.0;
+    C[0][1] = -1.0;
+    C[0][2] = 2.0;
+    C[0][3] = -3.0;
+    C[1][0] = 1.0;
+    C[1][1] = 10.0;
+    C[1][2] = -1.0;
+    C[1][3] = 2.0;
+    C[2][0] = 2.0;
+    C[2][1] = 3.0;
+    C[2][2] = 20.0;
+    C[2][3] = -1.0;
+    C[3][0] = 3.0;
+    C[3][1] = 2.0;
+    C[3][2] = 1.0;
+    C[3][3] = 20.0;
+
+    gsl_vector *d = gsl_vector_alloc((size_t)size);
+    d->data[0] = 0.0;
+    d->data[1] = 5.0;
+    d->data[2] = -10.0;
+    d->data[3] = 15.0;
+
+    jacobian_method(4, C, d, 0.001);
     free_vetor(x);
     free_vetor(A_1d);
+    free_matrix(4, C);
+    free(d);
     free_matrix(size, A);
     free(b);
 
