@@ -80,7 +80,6 @@ int main()
 {
     double *T = malloc(N * sizeof(double));
     double *S = malloc(N * sizeof(double));
-    double *Z = malloc(N * sizeof(double));
     srand(time(NULL));
     generate_array1(T);
     generate_array2(S);
@@ -108,7 +107,6 @@ int main()
     system("gnuplot --persist -e 'plot \"out/results5\" u 1:2'");
     free(T);
     free(S);
-    free(Z);
     fclose(results1);
     fclose(results2);
     fclose(results3);
