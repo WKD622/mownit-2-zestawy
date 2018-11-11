@@ -71,7 +71,7 @@ void clear_function(double *T)
     int i;
     for (i = 0; i < N; i++)
     {
-        if (_abs(T[i]) < 50)
+        if (_abs(T[i]) < 10)
             T[i] = 0.0;
     }
 }
@@ -88,6 +88,7 @@ int main()
     FILE *results3 = fopen("out/results3", "wr");
     FILE *results4 = fopen("out/results4", "wr");
     FILE *results5 = fopen("out/results5", "wr");
+    FILE *results6 = fopen("out/results6", "wr");
     generate_file(results1, T);
     generate_file(results2, S);
 
@@ -97,14 +98,18 @@ int main()
     generate_file_abs(results4, S);
 
     clear_function(S);
+    clear_function(T);
     gsl_fft_halfcomplex_radix2_inverse(S, 1, 256);
+    gsl_fft_halfcomplex_radix2_inverse(T, 1, 256);
     generate_file(results5, S);
+    generate_file(results6, T);
 
     system("gnuplot --persist -e 'plot \"out/results1\" u 1:2'");
     system("gnuplot --persist -e 'plot \"out/results3\" u 1:2'");
     system("gnuplot --persist -e 'plot \"out/results2\" u 1:2'");
     system("gnuplot --persist -e 'plot \"out/results4\" u 1:2'");
     system("gnuplot --persist -e 'plot \"out/results5\" u 1:2'");
+    system("gnuplot --persist -e 'plot \"out/results6\" u 1:2'");
     free(T);
     free(S);
     fclose(results1);
@@ -112,4 +117,5 @@ int main()
     fclose(results3);
     fclose(results4);
     fclose(results5);
+    fclose(results6);
 }
