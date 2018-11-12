@@ -14,7 +14,7 @@ void print_array(double T[N])
 {
     int i;
     for (i = 0; i < N; i++)
-    {
+    { 
         printf("%d) %10f\n", i, T[i]);
     }
 }
