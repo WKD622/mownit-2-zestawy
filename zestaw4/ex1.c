@@ -105,11 +105,11 @@ int main()
     generate_file(results6, T);
 
     system("gnuplot --persist -e 'plot \"out/results1\" u 1:2'");
-    system("gnuplot --persist -e 'plot \"out/results3\" u 1:2'");
+    system("gnuplot --persist -e 'plot \"out/results3\" u 1:2 with boxes'");
     system("gnuplot --persist -e 'plot \"out/results2\" u 1:2'");
-    system("gnuplot --persist -e 'plot \"out/results4\" u 1:2'");
+    system("gnuplot --persist -e 'plot \"out/results4\" u 1:2 with boxes'");
     system("gnuplot --persist -e 'plot \"out/results5\" u 1:2'");
-    system("gnuplot --persist -e 'plot \"out/results6\" u 1:2'");
+    //system("gnuplot --persist -e 'plot \"out/results6\" u 1:2'");
     free(T);
     free(S);
     fclose(results1);
