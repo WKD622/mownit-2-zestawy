@@ -7,7 +7,6 @@
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_fft_real.h>
 #include <gsl/gsl_fft_halfcomplex.h>
-#define N 10
 
 double x_2(double x)
 {
@@ -60,10 +59,38 @@ double hit_and_miss_1_sqr(int number_of_shoots, double x_start, double x_end, do
     return ((double)success / ((double)loss + (double)success)) * (x_end - x_start) * (y_end - y_start);
 }
 
+double _abs(double x)
+{
+    if (x < 0.0)
+        return x * (-1.0);
+    else
+        return x;
+}
+
+void test(int min_number_of_shoots, int max_number_of_shoots, FILE *results1, FILE *results2)
+{
+    double x_result = 0.33333333333;
+    double sqrt_result = 2.0;
+    for (int i = min_number_of_shoots; i < max_number_of_shoots; i++)
+    {
+        printf("%d\n", i);
+        fprintf(results1, "%3d   %10f\n", i, _abs(x_result - hit_and_miss_x_2(i, 0.0, 1.0, 0.0, 1.0)));
+        fprintf(results2, "%3d   %10f\n", i, _abs(sqrt_result - hit_and_miss_1_sqr(i, 0.0, 1.0, 0.0, 10000.0)));
+    }
+}
+
 int main()
 {
     srand(time(NULL));
-    printf("%f\n", hit_and_miss_x_2(100000, 0.0, 1.0, 0.0, 1.0));
-    printf("%f\n", hit_and_miss_1_sqr(100000000, 0.0, 1.0, 0.0, 10000.0));
+    //FILE *results1 = fopen("out/results_x_2", "wr");
+    //FILE *results2 = fopen("out/results_1_sqrt", "wr");
+
+    //test(100, 100000, results1, results2);
+    system("gnuplot --persist -e 'plot \"out/results_x_2\" u 1:2'");
+    system("gnuplot --persist -e 'plot \"out/results_1_sqrt\" u 1:2'");
+
+    //fclose(results1);
+    //fclose(results2);
+
     return 0;
 }
