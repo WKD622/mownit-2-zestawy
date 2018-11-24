@@ -187,7 +187,7 @@ int main()
     // testing my monte carlo for x^2 and 1/sqrt(x)
     FILE *my_x_2 = fopen("out/my_x_2", "wr");
     FILE *my_1_sqrt = fopen("out/my_1_sqrt", "wr");
-    //test_my_monte_carlo(100, 10000, my_x_2, my_1_sqrt);
+    test_my_monte_carlo(100, 50000, my_x_2, my_1_sqrt);
     fclose(my_x_2);
     fclose(my_1_sqrt);
 
@@ -195,7 +195,7 @@ int main()
     FILE *plain_x_2 = fopen("out/plain_x_2", "wr");
     FILE *miser_x_2 = fopen("out/miser_x_2", "wr");
     FILE *vegas_x_2 = fopen("out/vegas_x_2", "wr");
-    //test_x_2_gsl(100, 10000, plain_x_2, miser_x_2, vegas_x_2);
+    test_x_2_gsl(100, 50000, plain_x_2, miser_x_2, vegas_x_2);
     fclose(plain_x_2);
     fclose(miser_x_2);
     fclose(vegas_x_2);
@@ -204,10 +204,10 @@ int main()
     FILE *plain_sqrt_1 = fopen("out/plain_sqrt_1", "wr");
     FILE *miser_sqrt_1 = fopen("out/miser_sqrt_1", "wr");
     FILE *vegas_sqrt_1 = fopen("out/vegas_sqrt_1", "wr");
-    test_sqrt_1_gsl(100, 20000, plain_x_2, miser_x_2, vegas_x_2);
+    test_sqrt_1_gsl(100, 50000, plain_x_2, miser_x_2, vegas_x_2);
     fclose(plain_sqrt_1);
     fclose(miser_sqrt_1);
-    fclose(vegas_sqrt_1);
+    fclose(vegas_sqrt_1); 
 
     // drawing
     system("gnuplot --persist -e 'plot \"out/my_x_2\" u 1:2'");
